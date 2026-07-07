@@ -15,6 +15,12 @@ Commit by logical unit, not by session. A Builder that finishes a multi-part tas
 
 This is what makes the Reviewer's diff actually reviewable, and what lets a bad piece be reverted or bisected without losing the rest. If a commit touches several unrelated concerns, or a reviewer would need more than a few minutes to hold the whole thing in their head, split it before moving on.
 
+## Commit message content
+
+The commit body describes the behavior change and why, in plain terms — not the code internals (type signatures, method names, control-flow). Reviewers read the diff for mechanics.
+
+The diff already shows what changed at the code level; restating it in prose adds nothing and goes stale as the code around it evolves. What the diff can't show is the reasoning — why this shape, what problem it fixes, what breaks if it's wrong. That's what the body is for. See `./writing-style.md` for phrasing and tone once the content is right.
+
 ## Worktrees and the Docker container
 
 The Docker container mounts the **main checkout only**, NOT linked worktrees under `<project_root>/.worktrees/`. Therefore any command that runs inside the container executes against the **parent** codebase and will **not** see changes made in a worktree.
