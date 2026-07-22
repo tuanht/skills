@@ -6,7 +6,7 @@ When drafting any written output for Tuan (Jira comments, PR descriptions, Slack
 
 - Short, direct sentences. No preamble, no throat-clearing
 - Active voice always ("we found", "the query returns", "this breaks")
-- Numbered lists for findings or steps. No section headers unless the document is long
+- Numbered lists for findings or steps. No section headers unless the document is long (exception: commit message bodies — no numbered lists, use short prose sentences instead)
 - Lowercase after colons in list items ("1. on production, ~40 records have...")
 - Team voice: "we" not "I"
 - Natural connectors: "then it will", "we must", "so it" — not formal alternatives

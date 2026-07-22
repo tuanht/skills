@@ -11,9 +11,9 @@ Multi-agent git discipline for the Builder/Reviewer/Orchestrator split. This app
 
 ## Commit granularity
 
-Commit by logical unit, not by session. A Builder that finishes a multi-part task should leave behind several small commits — one per logical change (e.g. add the repository interface, add the handler, wire the route, add the test) — not a single 500-line commit at the end labeled "added feature X". Commit as soon as a logical unit is complete and working; don't batch everything until the whole task is done.
+Commit by **intent** — one cohesive change per commit, with every piece it needs to stand alone (code, the callers it touches, tests, config, docs — whatever that one change requires). Don't split a single intent across separate commits by file type or layer; those partial commits don't build or pass on their own. The unit is meaning: count the *why*s, not the files.
 
-This is what makes the Reviewer's diff actually reviewable, and what lets a bad piece be reverted or bisected without losing the rest. If a commit touches several unrelated concerns, or a reviewer would need more than a few minutes to hold the whole thing in their head, split it before moving on.
+Split only across genuinely distinct intents (an unrelated refactor, a second feature). Avoid the opposite too — no 500-line "added feature X" dump. Aim for the middle: small enough that the Reviewer holds it in their head and a bad one reverts cleanly, whole enough that it builds and its tests pass. Commit each intent as soon as it's complete.
 
 ## Commit message content
 
