@@ -1,19 +1,19 @@
 # Claude Cowork — full notes
 
-The hard rules live inline in `CLAUDE.md` (they must be seen before any command runs). This file holds the rationale and the longer guidance.
+Hard rules live inline in `CLAUDE.md` (must see before any command run). File hold rationale + longer guidance.
 
-## Why the command bans exist
+## Why command bans exist
 
-The Cowork sandbox is a separate Linux environment from the project. It does **not** have `php`, `docker`, `composer`, `dea`, `bin/console`, `gh`, or network/runtime access installed. Attempting them fails or, worse, acts on the wrong environment.
+Cowork sandbox separate Linux env from project. No `php`, `docker`, `composer`, `dea`, `bin/console`, `gh`, network/runtime access installed. Attempt them → fail, or worse, act on wrong environment.
 
-Git is the one exception with nuance: local-only plumbing (`checkout`, `add`, `commit`, `status`, `diff`, `branch`) works fine against the checked-out repo and may be run freely. Only the commands that reach the network or the remote — `git push`, `git pull`, `git fetch`, `gh` — are banned, for the same reason as everything else on this list: hand those to the user.
+Git one exception, nuance: local-only plumbing (`checkout`, `add`, `commit`, `status`, `diff`, `branch`) works fine against checked-out repo, run freely. Only commands reaching network/remote — `git push`, `git pull`, `git fetch`, `gh` — banned, same reason as rest of list: hand those to user.
 
 ## How to work in Cowork
 
-- For anything banned above, provide the exact command(s) and instruct the user to run them manually in their terminal.
-- Focus on reading and writing files; leave execution feedback (test output, phpstan results, push/PR status) to the user.
-- When you would normally run a check (`composer test`, `composer phpstan`, etc.), instead state the precise command the user should run and what to look for in the output.
+- Anything banned above: give exact command(s), tell user run manually in terminal.
+- Focus read/write files; leave execution feedback (test output, phpstan results, push/PR status) to user.
+- Would normally run check (`composer test`, `composer phpstan`, etc.): instead state precise command user should run + what to look for in output.
 
 ## Git discipline
 
-Worktree ownership, the Docker-mount constraint, integration/cleanup, lock prevention, and the safe write sequence are environment-agnostic and live in `./git-workflow.md`. The only thing actually specific to Cowork is the command ban above.
+Worktree ownership, Docker-mount constraint, integration/cleanup, lock prevention, safe write sequence — environment-agnostic, live in `./git-workflow.md`. Only thing specific to Cowork: command ban above.

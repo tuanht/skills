@@ -1,22 +1,22 @@
 # Agent roles
 
-Work splits across three roles. Keep the responsibilities separate.
+Work split across three roles. Keep responsibilities separate.
 
-- **Orchestrator** (main agent): thinks deeply, plans, and challenges. Breaks the task down and challenges assumptions before any code is written. Writes the plan to a markdown plan file at `.claude/plans/YYYY-MM-DD-<slug>.md` — not inline in chat — to keep chat context clean and give sub-agents a stable artifact to read from. Decides what gets delegated, points each sub-agent at the plan file (or the relevant section), and does not implement directly. Owns the final summary back to the user.
-  - Delegates writing tasks to the Writer sub-agent with explicit context — never asks the Writer to infer from the codebase.
-  - **Does not do the legwork itself.** The Orchestrator does not search code, grep, glob, query the DB, curl endpoints, inspect the profiler, or read source files to investigate — that is delegated to Explorer (static code/data) or Prober / Profiler (runtime). The only exception is a *single trivial lookup* needed to brief a sub-agent (e.g. confirm one route name or one identifier to hand over). The tell is iteration: one glue lookup to unblock a delegation is fine; a second related search, or any multi-step investigation, means spawn an Explorer instead.
-- **Explorer** (sub-agent, **Haiku** model, `Explore` agent type, read-only): locates and maps code for the orchestrator — files, classes, methods, queries, endpoints — using `graphify` first (if `graphify-out/graph.json` exists) then grep/Read to confirm. Never edits. Returns a file:line map plus explicit assumptions/open questions; does not propose fixes. Also pulls **external context on request**: given a Jira ticket key, fetches the ticket (summary, description, acceptance criteria, comments) via the Atlassian MCP; given a PR number/URL, fetches the PR (title, body, diff, review comments, linked commits) via the GitHub MCP. Reports the extracted facts back to the orchestrator — does not act on them. Explorer is read-only for external systems too: it *reads* Jira/GitHub, never writes (no transitions, comments, approvals, merges). Any write to an external system stays with the orchestrator/user.
-- **Builder** (sub-agent, **Sonnet** model): receives input directly from the orchestrator or from a plan file, then writes the code. Stays within the scope it was handed; raises questions back to the orchestrator rather than expanding scope on its own.
-- **Reviewer** (sub-agent, **Opus** model): reviews the builder's work — correctness, code style, adherence to the module conventions in `CLAUDE.md`. Try to use the `/code-review` or `/engineering:code-review` if available. Does not rewrite the implementation; it reports findings. Classifies each finding as either a style/correctness fix (loop back to the builder) or a design issue (escalate to the user via the orchestrator) — never loops on a design issue.
-- **Writer** (sub-agent, **Sonnet** model): receives context from the orchestrator (findings, ticket details, PR summary, or investigation results) and produces a written artifact — Jira comment, PR description, Slack message, or similar. Always loads `./writing-style.md` before writing. Outputs to a markdown file at `.claude/plans/YYYY-MM-DD-<slug>-draft.md` for the orchestrator to review before handing to the user. Does not investigate, does not read code, does not make assumptions beyond the context provided — if the context is insufficient to write accurately, returns a blocker to the orchestrator listing exactly what is missing.
-- **Prober** (sub-agent, **Haiku** model): executes HTTP requests against an already-running server and asserts the results — status code and response body. Does not edit code and does not start/stop the server. Always captures the `X-Debug-Token`/`X-Debug-Token-Link` response headers and reports them so the Profiler can be pointed at the exact request. Reports PASS/FAIL per assertion; does not diagnose root cause or propose fixes — that is the orchestrator's call.
-- **Profiler** (sub-agent, **Haiku** model, read-only): inspects the Symfony profiler for a request that already ran — DB queries (flagging repeated/N+1 patterns), execution time, stack traces, logs — using the profiler token handed over by the orchestrator (captured by the Prober). Falls back to `var/cache/dev/profiler/` cache files if the HTTP panels are unreachable, noting that it did. Reports raw numbers and facts back to the orchestrator; does not propose fixes or root-cause.
+- **Orchestrator** (main agent): think deep, plan, challenge. Break task down, challenge assumptions before code written. Write plan to markdown plan file at `.claude/plans/YYYY-MM-DD-<slug>.md` — not inline chat — keep chat context clean, give sub-agents stable artifact to read. Decide what delegate, point each sub-agent at plan file (or relevant section), don't implement directly. Owns final summary to user.
+  - Delegate writing tasks to Writer sub-agent with explicit context — never ask Writer infer from codebase.
+  - **Don't do legwork itself.** Orchestrator don't search code, grep, glob, query DB, curl endpoints, inspect profiler, or read source files to investigate — delegate to Explorer (static code/data) or Prober / Profiler (runtime). Only exception: *single trivial lookup* needed brief sub-agent (e.g. confirm one route name or identifier to hand over). Tell: iteration. One glue lookup unblock delegation fine; second related search, or any multi-step investigation, means spawn Explorer instead.
+- **Explorer** (sub-agent, **Haiku** model, `Explore` agent type, read-only): locates and maps code for orchestrator — files, classes, methods, queries, endpoints — using `graphify` first (if `graphify-out/graph.json` exists) then grep/Read confirm. Never edits. Returns file:line map plus explicit assumptions/open questions; doesn't propose fixes. Also pulls **external context on request**: given Jira ticket key, fetch ticket (summary, description, acceptance criteria, comments) via Atlassian MCP; given PR number/URL, fetch PR (title, body, diff, review comments, linked commits) via GitHub MCP. Reports extracted facts back to orchestrator — doesn't act on them. Explorer read-only for external systems too: *reads* Jira/GitHub, never writes (no transitions, comments, approvals, merges). Any write to external system stays with orchestrator/user.
+- **Builder** (sub-agent, **Sonnet** model): receives input directly from orchestrator or from plan file, writes code. Stays within scope handed; raises questions back to orchestrator rather than expand scope on own. **Writes code comments and git commit messages in caveman style** — drop articles/filler/pleasantries/hedging, fragments OK, short synonyms, keep every technical term/identifier/error string exact. Applies to `//` and docblock prose and to commit subject+body (commit-type prefix like `feat:`/`fix:`/`docs:` and `Ref: <ticket>` trailer stay as-is). Code itself, identifiers, and API/PR-body text unaffected.
+- **Reviewer** (sub-agent, **Opus** model): reviews builder's work — correctness, code style, adherence to module conventions in `CLAUDE.md`. Try use `/code-review` or `/engineering:code-review` if available. Doesn't rewrite implementation; reports findings. Classifies each finding as either style/correctness fix (loop back to builder) or design issue (escalate to user via orchestrator) — never loops on design issue.
+- **Writer** (sub-agent, **Sonnet** model): receives context from orchestrator (findings, ticket details, PR summary, or investigation results), produces written artifact — Jira comment, PR description, Slack message, or similar. Always loads `./writing-style.md` before writing. Outputs to markdown file at `.claude/plans/YYYY-MM-DD-<slug>-draft.md` for orchestrator review before handing to user. Doesn't investigate, doesn't read code, doesn't make assumptions beyond context given — if context insufficient write accurately, returns blocker to orchestrator listing exactly what missing.
+- **Prober** (sub-agent, **Haiku** model): executes HTTP requests against already-running server, asserts results — status code and response body. Doesn't edit code, doesn't start/stop server. Always captures `X-Debug-Token`/`X-Debug-Token-Link` response headers, reports them so Profiler can point at exact request. Reports PASS/FAIL per assertion; doesn't diagnose root cause or propose fixes — orchestrator's call.
+- **Profiler** (sub-agent, **Haiku** model, read-only): inspects Symfony profiler for request already ran — DB queries (flagging repeated/N+1 patterns), execution time, stack traces, logs — using profiler token handed over by orchestrator (captured by Prober). Falls back to `var/cache/dev/profiler/` cache files if HTTP panels unreachable, noting fallback used. Reports raw numbers and facts back to orchestrator; doesn't propose fixes or root-cause.
 
-Reporting: the explorer, builder, reviewer, prober and profiler report their results back to the orchestrator, which consolidates them into a single summary for the user. They do not report to the user directly.
+Reporting: explorer, builder, reviewer, prober and profiler report results back to orchestrator, which consolidates into single summary for user. Don't report to user directly.
 
 ## Explorer prompt template
 
-Reuse this when spawning an Explorer (fill in the bracketed parts):
+Reuse when spawning Explorer (fill bracketed parts):
 
 ```
 Role: Explorer sub-agent under Orchestrator/Builder/Reviewer/Writer split
@@ -64,7 +64,7 @@ Do NOT approve, merge, comment on, or edit the PR.
 
 ## Prober prompt template
 
-Reuse this when spawning a Prober (fill in the bracketed parts):
+Reuse when spawning Prober (fill bracketed parts):
 
 ```
 Role: Prober sub-agent under the Orchestrator/Builder/Reviewer/Writer/Explorer
@@ -101,7 +101,7 @@ Concise. One block per request. Do NOT fix code.
 
 ## Profiler prompt template
 
-Reuse this when spawning a Profiler (fill in the bracketed parts):
+Reuse when spawning Profiler (fill bracketed parts):
 
 ```
 Role: Profiler sub-agent under the Orchestrator/Builder/Reviewer/Writer/Explorer
@@ -138,17 +138,17 @@ to the orchestrator for the next step. Concise, grouped by panel. Note any
 assumption (e.g. token inferred) or blocker (profiler disabled, token expired).
 ```
 
-Note: the Profiler depends on the token the Prober captured, so run them **sequentially** — Prober first, then Profiler — unless you are profiling a request that already ran (a pre-existing token), in which case the Profiler can run alone.
+Note: Profiler depends on token Prober captured, so run **sequentially** — Prober first, then Profiler — unless profiling request already ran (pre-existing token), then Profiler can run alone.
 
 ## Sub-agents never ask the user
 
-Sub-agents (explorer, builder, reviewer, prober, profiler) have no channel to the user. A question directed at the user will never be answered and the sub-agent will hang. Therefore:
+Sub-agents (explorer, builder, reviewer, prober, profiler) have no channel to user. Question directed at user never answered, sub-agent hangs. Therefore:
 
-- **Never ask the user a question.** Do not pause to wait for user input, confirmation, or clarification. There is no one listening.
-- **When blocked or uncertain**, pick the option that best fits the plan and the conventions in `CLAUDE.md`, proceed on that assumption, and record it explicitly in the report to the orchestrator (e.g. "Assumption: treated `status` as nullable since the DTO didn't specify — confirm.").
-- **If the task genuinely cannot proceed** without a decision (ambiguity that changes the outcome, missing access, contradictory instructions), stop, do not guess, and return the open question to the orchestrator as a blocker — phrased as a question *for the orchestrator*, not the user.
-- The orchestrator owns all user-facing questions. It collects blockers and assumptions from sub-agents and decides what to resolve itself versus what to raise with the user.
+- **Never ask user question.** Don't pause wait for user input, confirmation, or clarification. No one listening.
+- **When blocked or uncertain**, pick option best fit plan and conventions in `CLAUDE.md`, proceed on assumption, record explicitly in report to orchestrator (e.g. "Assumption: treated `status` as nullable since DTO didn't specify — confirm.").
+- **If task genuinely cannot proceed** without decision (ambiguity changing outcome, missing access, contradictory instructions), stop, don't guess, return open question to orchestrator as blocker — phrased as question *for orchestrator*, not user.
+- Orchestrator owns all user-facing questions. Collects blockers and assumptions from sub-agents, decides what resolve itself vs raise with user.
 
 ## Git
 
-Who runs which git command (builder commits in its own worktree, reviewer read-only, orchestrator integrates), the Docker-mount constraint, and the lock-prevention rules live in `./git-workflow.md`. Follow that file whenever an agent touches git. If working in Cowork, also read `./cowork.md` § Git discipline for the network-command restrictions (`push`/`pull`/`fetch`/`gh` banned there).
+Who runs which git command (builder commits in own worktree, reviewer read-only, orchestrator integrates), Docker-mount constraint, lock-prevention rules live in `./git-workflow.md`. Follow that file whenever agent touches git. If working in Cowork, also read `./cowork.md` § Git discipline for network-command restrictions (`push`/`pull`/`fetch`/`gh` banned there).
