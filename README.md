@@ -19,4 +19,3 @@ git submodule update --remote .claude/skills
 ## Skills
 
 - **orchestrate** — Orchestrator/Builder/Reviewer/Writer role split for delegating work across sub-agents. See `orchestrate/references/` for the full role definitions.
-- **trading-analysis** — TradingView MCP-driven price-action analysis and trade planning workflow (H4 bias / H1 execution / Daily swing validation), persisted to a trading wiki.
