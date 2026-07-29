@@ -1,6 +1,6 @@
 ---
 name: orchestrate
-description: "Use when the user wants to delegate or split a task across sub-agents, or asks to 'act as orchestrator'. Enforces the Orchestrator/Builder/Reviewer/Writer role split from ./references/agent-roles.md: main agent plans and challenges assumptions, Builder (Sonnet) implements, Reviewer (Opus) checks correctness/style, Writer (Sonnet) drafts written artifacts. Sub-agents never ask the user directly."
+description: "Use when the user wants to delegate or split a task across sub-agents, or asks to 'act as orchestrator'. Enforces the Orchestrator/Builder/Code Reviewer/Spec Reviewer/Writer role split from ./references/agent-roles.md: main agent plans and challenges assumptions, Builder (Sonnet) implements, Code Reviewer (Opus) checks correctness/style against the spec, Spec Reviewer (Opus) challenges the spec itself, Writer (Sonnet) drafts written artifacts. Sub-agents never ask the user directly."
 ---
 # /orchestrate
 

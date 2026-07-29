@@ -13,7 +13,8 @@ The skill splits work across roles so the main agent (Orchestrator) never does t
 | **Orchestrator** | main | Plans, delegates, judges output, integrates git, reports to user | Search/grep/curl/edit code directly |
 | **Explorer** | Haiku | Maps code (file:line), pulls Jira/PR context | Edits, proposes fixes |
 | **Builder** | Sonnet | Writes code, commits in its worktree | Expands scope on its own |
-| **Reviewer** | Opus | Reviews the diff, classifies findings | Rewrites the code |
+| **Code Reviewer** | Opus | Reviews the diff against the spec, classifies findings | Rewrites the code, argues the spec |
+| **Spec Reviewer** | Opus | Challenges the spec — gaps, contradictions, debatable calls | Files style nits, loops back to Builder |
 | **Prober** | Haiku | Hits a running endpoint, asserts status/body | Edits code, restarts server |
 | **Profiler** | Haiku | Reads the profiler (query counts, timing) | Proposes fixes |
 | **Writer** | Sonnet | Drafts PR body / Jira comment / message | Investigates or reads code |
@@ -65,7 +66,7 @@ For each workstream:
 ```
 Builder implements + commits
    ↓
-Reviewer reads the diff, classifies each finding
+Code Reviewer reads the diff, classifies each finding
    ↓
 Prober hits the endpoint, captures a profiler token
    ↓
@@ -79,7 +80,7 @@ Orchestrator judges the combined output against the quality bar
 
 **What the loop caught in practice** (each fixed by looping back to the Builder, not by the Orchestrator editing):
 
-- A default-locale fallback returning the wrong localized value — Reviewer caught it against the framework's own semantics.
+- A default-locale fallback returning the wrong localized value — Code Reviewer caught it against the framework's own semantics.
 - Array ordering drift after switching to fetch-joins — Profiler/Prober evidence proved it was a deterministic regression, not noise; fixed with explicit `ORDER BY`.
 - A localized field the batch loader missed — Builder self-caught during its own verify step.
 
@@ -104,7 +105,7 @@ Only after explicit user approval — push and PR creation are outward-facing �
 ## What the demo shows about the skill
 
 - **The Orchestrator stays out of the weeds.** Every search, edit, HTTP call, and profiler read went to a sub-agent. The main thread held the plan and the judgment.
-- **Evidence over assertion.** No workstream was called "done" on the Builder's word — a Prober/Profiler pair produced runtime numbers, and a Reviewer read the diff independently.
+- **Evidence over assertion.** No workstream was called "done" on the Builder's word — a Prober/Profiler pair produced runtime numbers, and a Code Reviewer read the diff independently.
 - **The loop self-corrects.** Locale bugs, ordering drift, a missed field — all caught and looped back, with a hard cap so it never spins forever.
 - **Design issues stop the loop.** A false-premise workstream was surfaced to the user, not forced through.
 - **Outward-facing actions wait for the user.** Push and PR happened only on explicit approval; sensitive/irreversible steps are never autonomous.
