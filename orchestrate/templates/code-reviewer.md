@@ -32,6 +32,14 @@ rule from step 1. Cite the rule source with each finding
 (e.g. `coding-rules.md: no nested lazy-association loops`) so a finding can be
 checked against its source rather than trusted.
 
+Also hold the code to general design principles — SOLID, DRY, KISS, YAGNI —
+where they don't conflict with each other or with the rules from step 1. Project
+rules and the surrounding code's existing pattern always win. Prefer KISS on a
+tie: only call two blocks a DRY violation when they share a reason to change,
+and only ask for an interface/factory/layer when a second implementation or test
+seam actually needs it. Pre-existing violations outside the diff are notes, not
+findings. Label these findings as your own judgement — no rule source to cite.
+
 Report back (for the Orchestrator, not the end user), one line per finding as
 `path:line: <severity>: <problem>. <fix>. [rule source]`, grouped into:
 0. RULES LOADED — one line listing the rule files you read in step 1.
