@@ -6,16 +6,29 @@ Work split across roles. Keep responsibilities separate.
   - **No implementation code in plan file.** Plan carry decisions, rationale, contracts, constraints, paths of files to touch, helpers to reuse, tests, verification — describe pattern in prose, point at existing example. Writing the code is Builder's job; code in plan pre-empt that role and go stale against real diff. Data and contracts (API shape, ids, enum values) stay — they spec, not implementation.
   - Delegate writing tasks to Writer sub-agent with explicit context — never ask Writer infer from codebase.
   - **Don't do legwork itself.** Orchestrator don't search code, grep, glob, query DB, curl endpoints, inspect profiler, or read source files to investigate — delegate to Explorer (static code/data) or Prober / Profiler (runtime). Only exception: *single trivial lookup* needed brief sub-agent (e.g. confirm one route name or identifier to hand over). Tell: iteration. One glue lookup unblock delegation fine; second related search, or any multi-step investigation, means spawn Explorer instead.
-- **Explorer** (sub-agent, **Haiku** model, `Explore` agent type, read-only): locates and maps code for orchestrator — files, classes, methods, queries, endpoints — using `graphify` first (if `graphify-out/graph.json` exists) then grep/Read confirm. Returns file:line map plus explicit assumptions/open questions; doesn't propose fixes. Also pulls **external context on request**: given Jira ticket key, fetch ticket (summary, description, acceptance criteria, comments) via Atlassian MCP; given PR number/URL, fetch PR (title, body, diff, review comments, linked commits) via GitHub MCP. Read-only covers external systems too — never transitions, comments, approves, merges; any write stays with orchestrator/user.
-- **Builder** (sub-agent, **Sonnet** model): receives input directly from orchestrator or from plan file, writes code. Stays within scope handed; raises questions back to orchestrator rather than expand scope on own. **Writes code comments and git commit messages in caveman style** — drop articles/filler/pleasantries/hedging, fragments OK, short synonyms, keep every technical term/identifier/error string exact. Applies to `//` and docblock prose and to commit subject+body. Code itself, identifiers, and API/PR-body text unaffected.
-  - **Commit messages: invoke `Skill(skill: "caveman:caveman-commit")` before composing each one.** Not optional, not from memory — load the skill so its rules are in context, then write subject+body per them. Where those rules conflict with commit conventions in `CLAUDE.md`, **the skill wins**. Write the message to a file and `git commit -F <file>` so a multi-line body survives shell quoting.
-- **Code Reviewer** (sub-agent, **Opus** model): reviews builder's work *against the spec* — correctness, code style, adherence to project conventions (discovered per the rule below, not listed here). Takes spec as given; doesn't argue spec. Doesn't rewrite implementation; reports findings. Classifies each finding as either style/correctness fix (loop back to builder) or design issue (escalate to user via orchestrator) — never loops on design issue. Spec smell noticed while reading code (spec silent on case code must handle) gets handed to orchestrator as note for Spec Reviewer, not resolved inline.
+- **Explorer** (sub-agent, read-only): locates and maps code for orchestrator — files, classes, methods, queries, endpoints — using `graphify` first (if `graphify-out/graph.json` exists) then grep/Read confirm. Returns file:line map plus explicit assumptions/open questions; doesn't propose fixes. Also pulls **external context on request**: given Jira ticket key, fetch ticket (summary, description, acceptance criteria, comments) via Atlassian MCP; given PR number/URL, fetch PR (title, body, diff, review comments, linked commits) via GitHub MCP. Read-only covers external systems too — never transitions, comments, approves, merges; any write stays with orchestrator/user.
+- **Builder** (sub-agent): receives input directly from orchestrator or from plan file, writes code. Stays within scope handed; raises questions back to orchestrator rather than expand scope on own. Full contract — comment rules (caveman style, comment every non-obvious block, minimal in tests, no change-history), commit rules, report format — lives in `../templates/builder.md`. Orchestrator reads that file only when spawning a Builder; don't restate its rules here or inline in the prompt.
+- **Code Reviewer** (sub-agent): reviews builder's work *against the spec* — correctness, code style, adherence to project conventions (discovered per the rule below, not listed here). Takes spec as given; doesn't argue spec. Doesn't rewrite implementation; reports findings. Classifies each finding as either style/correctness fix (loop back to builder) or design issue (escalate to user via orchestrator) — never loops on design issue. Spec smell noticed while reading code (spec silent on case code must handle) gets handed to orchestrator as note for Spec Reviewer, not resolved inline.
   - **First move: invoke `Skill(skill: "code-review")` if available** (fall back `/engineering:code-review`, then `/review`). Not optional when present — load it, run it, use its findings as the review's spine, then layer project rules on top. Only if no such skill resolves, review by hand and say so in the report.
   - **Never carry a rule list in the prompt.** Reviewer *discovers* rules each run: every `CLAUDE.md` in scope, then `ls .claude/docs/` and read what's relevant, then one hop of links out of those. Prompt says where to look, never what the rules are — otherwise every new rule doc silently escapes review. Reviewer reports which files it loaded, and cites the source doc per finding.
-- **Spec Reviewer** (sub-agent, **Opus** model): challenges the *spec itself*, not the code against it. Reads plan file / ticket / acceptance criteria, may read code only as evidence about what spec ignores. Hunts data or assumptions contradicting chosen criteria, surfaces edge cases spec ignores, argues both sides where decision debatable, flags anything worth re-confirming before ship. Every finding is a design escalation to user via orchestrator — never a silent acceptance, never a loop back to builder. Doesn't edit code, doesn't file style nits.
-- **Writer** (sub-agent, **Sonnet** model): receives context from orchestrator (findings, ticket details, PR summary, or investigation results), produces written artifact — Jira comment, PR description, Slack message, or similar. Always loads `./writing-style.md` before writing. Outputs to markdown file at `.claude/plans/YYYY-MM-DD-<slug>-draft.md` for orchestrator review before handing to user. Doesn't investigate, doesn't read code, doesn't make assumptions beyond context given — if context insufficient write accurately, returns blocker to orchestrator listing exactly what missing.
-- **Prober** (sub-agent, **Haiku** model): executes HTTP requests against already-running server, asserts results — status code and response body. Doesn't edit code, doesn't start/stop server. Always captures `X-Debug-Token`/`X-Debug-Token-Link` response headers, reports them so Profiler can point at exact request. Reports PASS/FAIL per assertion; doesn't diagnose root cause or propose fixes — orchestrator's call.
-- **Profiler** (sub-agent, **Haiku** model, read-only): inspects Symfony profiler for request already ran — DB queries (flagging repeated/N+1 patterns), execution time, stack traces, logs — using profiler token handed over by orchestrator (captured by Prober). Falls back to `var/cache/dev/profiler/` cache files if HTTP panels unreachable, noting fallback used. Reports raw numbers and facts back to orchestrator; doesn't propose fixes or root-cause.
+- **Spec Reviewer** (sub-agent): challenges the *spec itself*, not the code against it. Reads plan file / ticket / acceptance criteria, may read code only as evidence about what spec ignores. Hunts data or assumptions contradicting chosen criteria, surfaces edge cases spec ignores, argues both sides where decision debatable, flags anything worth re-confirming before ship. Every finding is a design escalation to user via orchestrator — never a silent acceptance, never a loop back to builder. Doesn't edit code, doesn't file style nits.
+- **Writer** (sub-agent): receives context from orchestrator (findings, ticket details, PR summary, or investigation results), produces written artifact — Jira comment, PR description, Slack message, or similar. Always loads `.claude/skills/orchestrate/references/writing-style.md` before writing (full path — sub-agent cwd is repo root, a `./` path resolves wrong). Outputs to markdown file at `.claude/plans/YYYY-MM-DD-<slug>-draft.md` for orchestrator review before handing to user. Doesn't investigate, doesn't read code, doesn't make assumptions beyond context given — if context insufficient write accurately, returns blocker to orchestrator listing exactly what missing.
+- **Prober** (sub-agent): executes HTTP requests against already-running server, asserts results — status code and response body. Doesn't edit code, doesn't start/stop server. Always captures `X-Debug-Token`/`X-Debug-Token-Link` response headers, reports them so Profiler can point at exact request. Reports PASS/FAIL per assertion; doesn't diagnose root cause or propose fixes — orchestrator's call.
+- **Profiler** (sub-agent, read-only): inspects Symfony profiler for request already ran — DB queries (flagging repeated/N+1 patterns), execution time, stack traces, logs — using profiler token handed over by orchestrator (captured by Prober). Falls back to `var/cache/dev/profiler/` cache files if HTTP panels unreachable, noting fallback used. Reports raw numbers and facts back to orchestrator; doesn't propose fixes or root-cause.
+
+## Dispatch table
+
+Every `Agent` call **must** pass `model` and `subagent_type` explicitly. Omitting `model` makes the sub-agent inherit the orchestrator's model — wrong tier, wasted tokens. Not optional, not inferred from the role name.
+
+| Role | `subagent_type` | `model` |
+|------|-----------------|---------|
+| Explorer | `Explore` | `haiku` |
+| Builder | `general-purpose` | `sonnet` |
+| Code Reviewer | `general-purpose` | `opus` |
+| Spec Reviewer | `general-purpose` | `opus` |
+| Writer | `general-purpose` | `sonnet` |
+| Prober | `general-purpose` | `haiku` |
+| Profiler | `general-purpose` | `haiku` |
 
 ## Coding principles (Builder + Code Reviewer)
 
@@ -40,13 +53,19 @@ orchestrator loads only the one template it needs.
 | Role | Template |
 |------|----------|
 | Explorer | `../templates/explorer.md` |
+| Builder | `../templates/builder.md` |
 | Code Reviewer | `../templates/code-reviewer.md` |
 | Spec Reviewer | `../templates/spec-reviewer.md` |
+| Writer | `../templates/writer.md` |
 | Prober | `../templates/prober.md` |
 | Profiler | `../templates/profiler.md` |
 
-No template for Builder or Writer — both take a task-specific brief from the
-orchestrator, so their role bullets above are the whole contract.
+Builder's and Writer's templates carry the task-specific brief in their
+`[BRACKETED]` slots — fill them, don't drop the standing rules around them.
+Writer's context block is the only thing it will ever know: paste facts in full,
+never a pointer to a file it should go read.
+
+Every role now has a template. Adding a role means adding one here.
 
 Every template repeats "no channel to the user" and "report to the orchestrator"
 because sub-agents never see this file — that repetition is load-bearing. None

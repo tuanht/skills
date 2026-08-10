@@ -17,7 +17,7 @@ Split only across genuinely distinct intents (unrelated refactor, second feature
 
 ## Commit message content
 
-Body carries what the diff can't: reasoning — why this shape, what problem fixed, what breaks if wrong. Plain terms, behavior level. Leave out code internals (type signatures, method names, control-flow) — diff already shows those, prose restating them adds nothing and goes stale as code evolves. See `./writing-style.md` for phrasing/tone once content right.
+Body carries what the diff can't: reasoning — why this shape, what problem fixed, what breaks if wrong. Plain terms, behavior level. Leave out code internals (type signatures, method names, control-flow) — diff already shows those, prose restating them adds nothing and goes stale as code evolves. See `.claude/skills/orchestrate/references/writing-style.md` for phrasing/tone once content right (full path — this file gets read by sub-agents whose cwd is repo root).
 
 **Builder invokes `Skill(skill: "caveman:caveman-commit")` before composing every commit message** — load it, don't recall it. That skill owns subject format, length cap, body rules, and trailers; where it conflicts with `CLAUDE.md` commit conventions, **the skill wins**. Commit via `git commit -F <file>`, not `-m`, so multi-line body survives quoting. Orchestrator reads the finished messages (`git log master..HEAD --format='%s%n%n%b'`) before integrating and loops Builder back if they drift — Builder doesn't self-certify.
 
@@ -47,7 +47,8 @@ git worktree prune
 
 ## Lock prevention
 
-- Never issue two git commands in parallel bash calls — wait previous call return before next.
+- **Scope: one worktree.** Rules below apply *within a single worktree* — that's where the index lock lives (`.git/worktrees/<name>/index.lock`). Two Builders committing in two different worktrees, on two different branches, don't contend — that isolation is the whole point of the worktree split. Main checkout counts as one worktree like any other.
+- Never issue two git commands in parallel bash calls **against the same worktree** — wait previous call return before next.
 - Read-only ops: pass `--no-optional-locks` to skip index lock entirely:
 
 ```bash
@@ -57,7 +58,7 @@ git --no-optional-locks log --oneline -10
 git --no-optional-locks diff --cached
 ```
 
-- Never parallelize `git add`, `git commit`, `git merge`, `git rebase`, `git stash`, `git checkout`, or `git switch` with any other git call.
+- Never parallelize `git add`, `git commit`, `git merge`, `git rebase`, `git stash`, `git checkout`, or `git switch` with any other git call **in that same worktree**. Exception to the isolation above: `git worktree add` / `remove` / `prune` and any branch-ref write (`git branch -d`, `git push`) touch shared state — orchestrator runs those alone, no other git command anywhere in flight.
 - Lock error mid-session: stop, report — don't delete lock files yourself. Hand to user, resolve from own terminal (not agent's bash tool):
 
 ```bash
