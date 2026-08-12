@@ -17,7 +17,7 @@ Split only across genuinely distinct intents (unrelated refactor, second feature
 
 ## Commit message content
 
-Body carries what the diff can't: reasoning — why this shape, what problem fixed, what breaks if wrong. Plain terms, behavior level. Leave out code internals (type signatures, method names, control-flow) — diff already shows those, prose restating them adds nothing and goes stale as code evolves. See `.claude/skills/orchestrate/references/writing-style.md` for phrasing/tone once content right (full path — this file gets read by sub-agents whose cwd is repo root).
+Body carries what the diff can't: reasoning — why this shape, what problem fixed, what breaks if wrong. Plain terms, behavior level. Leave out code internals (type signatures, method names, control-flow) — diff already shows those, prose restating them adds nothing and goes stale as code evolves. See `.claude/skills/skills/orchestrate/references/writing-style.md` for phrasing/tone once content right (full path — this file gets read by sub-agents whose cwd is repo root).
 
 **Builder invokes `Skill(skill: "caveman:caveman-commit")` before composing every commit message** — load it, don't recall it. That skill owns subject format, length cap, body rules, and trailers; where it conflicts with `CLAUDE.md` commit conventions, **the skill wins**. Commit via `git commit -F <file>`, not `-m`, so multi-line body survives quoting. Orchestrator reads the finished messages (`git log master..HEAD --format='%s%n%n%b'`) before integrating and loops Builder back if they drift — Builder doesn't self-certify.
 

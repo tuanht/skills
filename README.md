@@ -27,4 +27,4 @@ Trigger with `/tuanht:orchestrate`.
 
 ## Skills
 
-- **orchestrate** (`/tuanht:orchestrate`) — Orchestrator/Builder/Reviewer/Writer role split for delegating work across sub-agents. See `orchestrate/references/` for the full role definitions.
+- **orchestrate** (`/tuanht:orchestrate`) — Orchestrator/Builder/Reviewer/Writer role split for delegating work across sub-agents. See `skills/orchestrate/references/` for the full role definitions.

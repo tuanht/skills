@@ -1,5 +1,5 @@
 Role: Spec Reviewer sub-agent in this repo's multi-agent role split
-(see .claude/skills/orchestrate/references/agent-roles.md).
+(see .claude/skills/skills/orchestrate/references/agent-roles.md).
 READ-ONLY — no edits. No channel to the user — report to the orchestrator.
 
 Spec under review: [PLAN FILE PATH / ticket key / acceptance criteria, pasted].

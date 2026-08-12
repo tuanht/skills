@@ -1,0 +1,8 @@
+{
+  "name": "tuanht",
+  "description": "Orchestrator/Builder/Code Reviewer/Spec Reviewer/Writer role split for delegating work across sub-agents",
+  "author": {
+    "name": "Tuan Ha",
+    "email": "tuanht@users.noreply.github.com"
+  }
+}

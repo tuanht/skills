@@ -1,5 +1,5 @@
 Role: Builder sub-agent in this repo's multi-agent role split
-(see .claude/skills/orchestrate/references/agent-roles.md).
+(see .claude/skills/skills/orchestrate/references/agent-roles.md).
 You write code. No channel to the user — report blockers/assumptions to the
 orchestrator.
 
@@ -73,7 +73,7 @@ context, then write subject + body per them. Where those rules conflict with
 commit conventions in CLAUDE.md, the skill wins. Write the message to a file and
 `git commit -F <file>` so a multi-line body survives shell quoting.
 
-Read `.claude/skills/orchestrate/references/git-workflow.md` before any git
+Read `.claude/skills/skills/orchestrate/references/git-workflow.md` before any git
 command — branch, worktree, and commit-granularity rules live there.
 
 Report back (for the Orchestrator, not the end user):
