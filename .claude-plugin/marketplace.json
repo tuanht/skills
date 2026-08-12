@@ -1,0 +1,20 @@
+{
+  "name": "tuanht-skills",
+  "source": {
+    "source": "github",
+    "repo": "tuanht/skills"
+  },
+  "description": "Tuan Ha's personal Claude Code skills",
+  "version": "0.0.1",
+  "owner": {
+    "name": "Tuan Ha",
+    "email": "tuanht@users.noreply.github.com"
+  },
+  "plugins": [
+    {
+      "name": "orchestrate",
+      "source": "./orchestrate",
+      "description": "Orchestrator/Builder/Code Reviewer/Spec Reviewer/Writer role split for delegating work across sub-agents"
+    }
+  ]
+}
