@@ -12,7 +12,7 @@
   },
   "plugins": [
     {
-      "name": "orchestrate",
+      "name": "tuanht",
       "source": "./orchestrate",
       "description": "Orchestrator/Builder/Code Reviewer/Spec Reviewer/Writer role split for delegating work across sub-agents"
     }
