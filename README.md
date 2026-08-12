@@ -20,9 +20,11 @@ Or install as a Claude Code plugin marketplace:
 
 ```
 /plugin marketplace add tuanht/skills
-/plugin install orchestrate@tuanht-skills
+/plugin install tuanht@tuanht-skills
 ```
+
+Trigger with `/tuanht:orchestrate`.
 
 ## Skills
 
-- **orchestrate** — Orchestrator/Builder/Reviewer/Writer role split for delegating work across sub-agents. See `orchestrate/references/` for the full role definitions.
+- **orchestrate** (`/tuanht:orchestrate`) — Orchestrator/Builder/Reviewer/Writer role split for delegating work across sub-agents. See `orchestrate/references/` for the full role definitions.
