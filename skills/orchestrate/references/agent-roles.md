@@ -13,6 +13,7 @@ Work split across roles. Keep responsibilities separate.
   - **Never carry a rule list in the prompt.** Reviewer *discovers* rules each run: every `CLAUDE.md` in scope, then `ls .claude/docs/` and read what's relevant, then one hop of links out of those. Prompt says where to look, never what the rules are — otherwise every new rule doc silently escapes review. Reviewer reports which files it loaded, and cites the source doc per finding.
 - **Spec Reviewer** (sub-agent): challenges the *spec itself*, not the code against it. Reads plan file / ticket / acceptance criteria, may read code only as evidence about what spec ignores. Hunts data or assumptions contradicting chosen criteria, surfaces edge cases spec ignores, argues both sides where decision debatable, flags anything worth re-confirming before ship. Every finding is a design escalation to user via orchestrator — never a silent acceptance, never a loop back to builder. Doesn't edit code, doesn't file style nits.
 - **Writer** (sub-agent): receives context from orchestrator (findings, ticket details, PR summary, or investigation results), produces written artifact — Jira comment, PR description, Slack message, or similar. Always loads `.claude/skills/skills/orchestrate/references/writing-style.md` before writing (full path — sub-agent cwd is repo root, a `./` path resolves wrong). Outputs to markdown file at `.claude/plans/YYYY-MM-DD-<slug>-draft.md` for orchestrator review before handing to user. Doesn't investigate, doesn't read code, doesn't make assumptions beyond context given — if context insufficient write accurately, returns blocker to orchestrator listing exactly what missing.
+- **Operator** *(experimental)* (sub-agent): owns the runtime environment — git flow setup (worktrees, branches), container/stack bootstrap, and command execution handed to it by orchestrator. Bootstraps environment per project's own docs (`CLAUDE.md` / bootstrap script it finds there — no fixed script name assumed), confirms health, reports ports/service state, runs commands (host or container, with correct project directory/context) orchestrator hands it. Doesn't edit code, doesn't commit, doesn't diagnose failures — reports raw output and exit codes, root-cause is orchestrator's call. **Destructive ops (`down -v`, volume removal, `git worktree remove`, branch deletion) only on explicit orchestrator instruction naming the target** — never speculative cleanup, never on the main checkout's stack. Under trial: its boundaries may change.
 - **Prober** (sub-agent): executes HTTP requests against already-running server, asserts results — status code and response body. Doesn't edit code, doesn't start/stop server. Always captures `X-Debug-Token`/`X-Debug-Token-Link` response headers, reports them so Profiler can point at exact request. Reports PASS/FAIL per assertion; doesn't diagnose root cause or propose fixes — orchestrator's call.
 - **Profiler** (sub-agent, read-only): inspects Symfony profiler for request already ran — DB queries (flagging repeated/N+1 patterns), execution time, stack traces, logs — using profiler token handed over by orchestrator (captured by Prober). Falls back to `var/cache/dev/profiler/` cache files if HTTP panels unreachable, noting fallback used. Reports raw numbers and facts back to orchestrator; doesn't propose fixes or root-cause.
 
@@ -23,6 +24,7 @@ Every `Agent` call **must** pass `model` and `subagent_type` explicitly. Omittin
 | Role | `subagent_type` | `model` |
 |------|-----------------|---------|
 | Explorer | `Explore` | `haiku` |
+| Operator | `general-purpose` | `haiku` |
 | Builder | `general-purpose` | `sonnet` |
 | Code Reviewer | `general-purpose` | `opus` |
 | Spec Reviewer | `general-purpose` | `opus` |
@@ -53,6 +55,7 @@ orchestrator loads only the one template it needs.
 | Role | Template |
 |------|----------|
 | Explorer | `../templates/explorer.md` |
+| Operator | `../templates/operator.md` |
 | Builder | `../templates/builder.md` |
 | Code Reviewer | `../templates/code-reviewer.md` |
 | Spec Reviewer | `../templates/spec-reviewer.md` |
@@ -70,6 +73,8 @@ Every role now has a template. Adding a role means adding one here.
 Every template repeats "no channel to the user" and "report to the orchestrator"
 because sub-agents never see this file — that repetition is load-bearing. None
 names the other roles, so adding or splitting a role doesn't touch five files.
+
+Note: Operator runs **before** Builder when a worktree stack needed (bootstrap), and again between Builder and any container-based verification. Builder itself never runs container commands — see `./git-workflow.md` § Worktrees and the Docker container.
 
 Note: Profiler depends on token Prober captured, so run **sequentially** — Prober first, then Profiler — unless profiling request already ran (pre-existing token), then Profiler can run alone.
 
