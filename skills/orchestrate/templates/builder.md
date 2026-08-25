@@ -56,6 +56,9 @@ identifiers, and API text unaffected.
 
 ## Commits
 
+Don't commit code not yet reviewed by Code Reviewer and Spec Reviewer. Report
+ready-for-review and wait for Orchestrator's go-ahead first.
+
 Invoke `Skill(skill: "caveman:caveman-commit")` before composing each commit
 message. Not optional, not from memory — load skill so rules in
 context, then write subject + body per them. Where those rules conflict with
