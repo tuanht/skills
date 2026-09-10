@@ -53,6 +53,13 @@ identifiers, and API text unaffected.
   used to be. Banned: `// was X, now Y`, `// changed per review`,
   `// old logic removed`, `// added in <ticket>`, and commented-out previous
   versions. Git holds history; branch diff already shows it.
+- **No planning history in comments.** Never plan-file path, never
+  "Decision N", never restate which option plan chose or why alternatives
+  lost. That reasoning lives in plan file. Plan asks for comment pointing at
+  itself: honor intent, not literal pointer — state fact, drop path and
+  decision numbering. Test: comment still make sense to someone reading code
+  in year, no access to plan or ticket? If not, cut it, or rewrite as
+  underlying fact.
 
 ## Commits
 

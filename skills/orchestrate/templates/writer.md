@@ -19,6 +19,12 @@ STEP 2 — if artifact PR description, also read
 STEP 3 — write draft to output file above.
 
 Hard rules:
+- **Keep-vs-cut, per fact.** Keep only fact reviewer would miss reading diff
+  alone: contract/behavior change, new field nullability, edge case someone
+  gets bitten by. Cut reasoning that produced fact — why this approach,
+  alternatives rejected, implementation detail, unrelated fixes found along
+  way. That belongs in plan file. Plan says something "must be called out in
+  PR body": state fact, not its justification.
 - Every factual claim must trace to context block. Can't verify anything self — anything not given not established.
 - Never tick checklist box context doesn't support (e.g. don't claim tests added unless context says test files added).
 - Never mention Claude, AI, or any assistant. No "Co-Authored-By", no
