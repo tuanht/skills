@@ -1,0 +1,17 @@
+# <stack>.network
+# Source of truth: <SRC>/<stack>.network
+# Generator copy: /etc/containers/systemd/<stack>.network
+
+[Unit]
+Description=<stack> network
+Documentation=man:podman-systemd.unit(5)
+
+[Network]
+NetworkName=<stack>
+Label=app=<stack>
+# Subnet=10.89.0.0/24
+# Gateway=10.89.0.1
+# IPv6=...
+
+[Install]
+WantedBy=multi-user.target default.target

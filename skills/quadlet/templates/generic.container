@@ -1,0 +1,34 @@
+# <stack>-<service>.container
+# Source of truth: <SRC>/<stack>-<service>.container
+# Generator copy:  /etc/containers/systemd/<stack>-<service>.container
+# Do not symlink.
+#
+# Generated unit: <stack>-<service>.service
+# Do not set HostName= when this container is a member of a pod.
+
+[Unit]
+Description=<service> (<stack>)
+Documentation=
+Wants=network-online.target
+After=network-online.target local-fs.target
+# Add zfs* or other host services (e.g. mydb.service) in Wants/After as needed
+# RequiresMountsFor=/path/to/data
+
+[Container]
+Image=<image>
+ContainerName=<stack>-<service>
+# Pod=<stack>.pod          # uncomment when using pod model
+# Network=<stack>.network  # uncomment when using network model
+AutoUpdate=registry
+
+# Volume=/path/on/host:/path/in/container:Z
+# Environment=KEY=value
+# EnvironmentFile=/absolute/path/to/<stack>.env
+
+[Service]
+Restart=always
+TimeoutStartSec=300
+# ExecStartPre=/usr/bin/mkdir -p /path/to/data
+
+[Install]
+WantedBy=multi-user.target default.target

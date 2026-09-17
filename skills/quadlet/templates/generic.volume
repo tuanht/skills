@@ -1,0 +1,13 @@
+# <stack>-data.volume
+# Source of truth: <SRC>/<stack>-data.volume
+# Generator copy: /etc/containers/systemd/<stack>-data.volume
+
+[Unit]
+Description=<stack> data volume
+
+[Volume]
+VolumeName=<stack>-data
+Label=app=<stack>
+
+[Install]
+WantedBy=multi-user.target default.target

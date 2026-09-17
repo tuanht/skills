@@ -1,0 +1,29 @@
+# <stack>.pod
+# Source of truth (ZFS or other): <SRC>/<stack>.pod
+# Generator copy (root):  /etc/containers/systemd/<stack>.pod   (rootful)
+#                         ~/.config/containers/systemd/<stack>.pod (rootless)
+# Do not symlink — the Quadlet generator runs before late mounts.
+#
+# Generated unit: <stack>-pod.service
+# Publish ports here, not on member containers.
+
+[Unit]
+Description=<stack> pod
+Documentation=man:podman-systemd.unit(5)
+Wants=network-online.target
+After=network-online.target local-fs.target
+# For late-mounted storage (ZFS/NFS) uncomment and adjust:
+# Wants=zfs-mount.service zfs.target
+# After=zfs-import.target zfs-mount.service zfs.target
+# RequiresMountsFor=/path/to/source
+
+[Pod]
+PodName=<stack>
+# PublishPort=8080:8080
+# PublishPort=8443:443
+AddHost=host.containers.internal:host-gateway
+AddHost=host.docker.internal:host-gateway
+Label=app=<stack>
+
+[Install]
+WantedBy=multi-user.target default.target
