@@ -28,4 +28,4 @@ Trigger with `/tuanht:orchestrate`.
 ## Skills
 
 - **orchestrate** (`/tuanht:orchestrate`) — Orchestrator/Builder/Reviewer/Writer role split for delegating work across sub-agents. See `skills/orchestrate/references/` for the full role definitions.
-- **quadlet** (`/quadlet`) — Create and manage Podman Quadlet units (.container, .pod, .network, .volume) for homelab stacks. Convert docker-compose, install on Linux (rootful/rootless), late-mount ZFS support. See `skills/quadlet/`.
+- **quadlet** (`/tuanht:quadlet`) — Create and manage Podman Quadlet units (.container, .pod, .network, .volume) for homelab stacks. Convert docker-compose, install on Linux (rootful/rootless), late-mount ZFS support. See `skills/quadlet/`.

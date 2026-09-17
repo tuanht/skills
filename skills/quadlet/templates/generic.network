@@ -1,6 +1,10 @@
 # <stack>.network
 # Source of truth: <SRC>/<stack>.network
-# Generator copy: /etc/containers/systemd/<stack>.network
+# Generator copy (root):  /etc/containers/systemd/<stack>.network   (rootful)
+#                         ~/.config/containers/systemd/<stack>.network (rootless)
+# Do not symlink — the Quadlet generator runs before late mounts.
+#
+# Generated unit: <stack>-network.service
 
 [Unit]
 Description=<stack> network
@@ -11,7 +15,6 @@ NetworkName=<stack>
 Label=app=<stack>
 # Subnet=10.89.0.0/24
 # Gateway=10.89.0.1
-# IPv6=...
 
 [Install]
-WantedBy=multi-user.target default.target
+WantedBy=default.target

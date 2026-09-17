@@ -1,34 +1,45 @@
 # <stack>-<service>.container
 # Source of truth: <SRC>/<stack>-<service>.container
-# Generator copy:  /etc/containers/systemd/<stack>-<service>.container
-# Do not symlink.
+# Generator copy (root):  /etc/containers/systemd/<stack>-<service>.container   (rootful)
+#                         ~/.config/containers/systemd/<stack>-<service>.container (rootless)
+# Do not symlink — the Quadlet generator runs before late mounts.
 #
 # Generated unit: <stack>-<service>.service
 # Do not set HostName= when this container is a member of a pod.
+# Do not set PublishPort= when this container is a member of a pod.
+# UserNS=keep-id: set on [Pod] when using Pod=; set here only when standalone/network.
 
 [Unit]
 Description=<service> (<stack>)
-Documentation=
+Documentation=man:podman-systemd.unit(5)
 Wants=network-online.target
 After=network-online.target local-fs.target
-# Add zfs* or other host services (e.g. mydb.service) in Wants/After as needed
-# RequiresMountsFor=/path/to/data
+# If late_mount: true, set RequiresMountsFor= to data + env paths.
+# Rootful ZFS only — also Wants=/After= zfs-import.target zfs-mount.service zfs.target
+# Rootless: RequiresMountsFor= only; do not After= system zfs units.
+# RequiresMountsFor=/path/to/data /path/to/<stack>.env
+# depends_on → After=<stack>-other.container (under [Unit], not [Container])
 
 [Container]
-Image=<image>
+# Fully-qualified image required for AutoUpdate=registry
+Image=<registry>/<name>:<tag>
 ContainerName=<stack>-<service>
 # Pod=<stack>.pod          # uncomment when using pod model
 # Network=<stack>.network  # uncomment when using network model
+# PublishPort=8080:8080    # standalone / network-model only; never on pod members
 AutoUpdate=registry
+# UserNS=keep-id           # rootless standalone / network-model only
 
-# Volume=/path/on/host:/path/in/container:Z
+# Volume=/absolute/host/path:/path/in/container:Z
 # Environment=KEY=value
 # EnvironmentFile=/absolute/path/to/<stack>.env
 
 [Service]
 Restart=always
-TimeoutStartSec=300
+TimeoutStartSec=900
+# Only with RequiresMountsFor= for the same path (else mkdir can mask a late mount).
+# Rootless: ownership must match keep-id mapped uid/gid.
 # ExecStartPre=/usr/bin/mkdir -p /path/to/data
 
 [Install]
-WantedBy=multi-user.target default.target
+WantedBy=default.target

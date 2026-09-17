@@ -1,6 +1,8 @@
 stack: <stack>
-source_of_truth: /path/to/quadlets   # or ~/quadlets for rootless; user-chosen
+mode: rootful                    # rootful | rootless
+source_of_truth: /path/to/quadlets
 late_mount: true
+late_mount_kind: zfs             # zfs | nfs | local
 generator_dir: /etc/containers/systemd    # or ~/.config/containers/systemd
 
 units:
@@ -8,11 +10,15 @@ units:
   - <stack>-web.container
   # - <stack>.network
   # - <stack>-data.volume
-  # - some-host.service.d/10-myoverride.conf  # optional host systemd drop-in (rare)
 
 start_order:
+  # pod model:
   - <stack>-pod.service
   - <stack>-web.service
+  # network model (use instead of *-pod.service):
+  # - <stack>-network.service
+  # - <stack>-data-volume.service
+  # - <stack>-web.service
 
 images:
   - ghcr.io/example/app:main

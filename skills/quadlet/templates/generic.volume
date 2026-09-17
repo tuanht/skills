@@ -1,13 +1,18 @@
 # <stack>-data.volume
 # Source of truth: <SRC>/<stack>-data.volume
-# Generator copy: /etc/containers/systemd/<stack>-data.volume
+# Generator copy (root):  /etc/containers/systemd/<stack>-data.volume   (rootful)
+#                         ~/.config/containers/systemd/<stack>-data.volume (rootless)
+# Do not symlink — the Quadlet generator runs before late mounts.
+#
+# Generated unit: <stack>-data-volume.service
 
 [Unit]
 Description=<stack> data volume
+Documentation=man:podman-systemd.unit(5)
 
 [Volume]
 VolumeName=<stack>-data
 Label=app=<stack>
 
 [Install]
-WantedBy=multi-user.target default.target
+WantedBy=default.target
