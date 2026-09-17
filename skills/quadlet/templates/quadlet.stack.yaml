@@ -1,0 +1,33 @@
+stack: <stack>
+mode: rootful                    # rootful | rootless
+source_of_truth: /path/to/quadlets
+late_mount: true
+late_mount_kind: zfs             # zfs | nfs | local
+generator_dir: /etc/containers/systemd    # or ~/.config/containers/systemd
+
+units:
+  - <stack>.pod
+  - <stack>-web.container
+  # - <stack>.network
+  # - <stack>-data.volume
+
+start_order:
+  # pod model:
+  - <stack>-pod.service
+  - <stack>-web.service
+  # network model (use instead of *-pod.service):
+  # - <stack>-network.service
+  # - <stack>-data-volume.service
+  # - <stack>-web.service
+
+images:
+  - ghcr.io/example/app:main
+
+env_files:
+  - <stack>.env
+
+data_dirs:
+  - /path/to/quadlets/webdata
+
+checks:
+  - curl -sS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8080

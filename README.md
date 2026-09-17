@@ -1,22 +1,19 @@
 # skills
 
-My personal skill set for customizing Claude Code across projects.
+My personal skill set for Claude Code and OpenCode.
 
 ## Usage
 
-This repo is meant to be consumed as a git submodule at `.claude/skills` in any project:
+### Claude Code
+
+Git submodule at `.claude/skills`:
 
 ```
 git submodule add git@github.com:tuanht/skills.git .claude/skills
-```
-
-To pick up updates in a project that already has the submodule:
-
-```
 git submodule update --remote .claude/skills
 ```
 
-Or install as a Claude Code plugin marketplace:
+Or plugin marketplace:
 
 ```
 /plugin marketplace add tuanht/skills
@@ -25,6 +22,22 @@ Or install as a Claude Code plugin marketplace:
 
 Trigger with `/tuanht:orchestrate`.
 
+### OpenCode
+
+Clone this repo, then add the `skills/` directory to `~/.config/opencode/opencode.json`:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "skills": {
+    "paths": ["/path/to/skills/skills"]
+  }
+}
+```
+
+Update: `git pull` in the clone, then quit and restart OpenCode.
+
 ## Skills
 
 - **orchestrate** (`/tuanht:orchestrate`) — Orchestrator/Builder/Reviewer/Writer role split for delegating work across sub-agents. See `skills/orchestrate/references/` for the full role definitions.
+- **quadlet** (`/tuanht:quadlet`) — Create and manage Podman Quadlet units (.container, .pod, .network, .volume) for homelab stacks. Convert docker-compose, install on Linux (rootful/rootless), late-mount ZFS support. See `skills/quadlet/`.
